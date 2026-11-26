@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>CalfWayHome</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <!-- Calf Way Home page for static hosting (GitHub Pages): the game fills the window; a slim bottom bar holds Fullscreen. -->
+    <style>
+      html, body { margin: 0; padding: 0; height: 100%; background: #0d1416; overflow: hidden; }
+      body { display: flex; flex-direction: column; font-family: Arial, Helvetica, sans-serif; }
+
+      #game { position: relative; flex: 1 1 auto; min-height: 0; }
+      #unity-canvas { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: block; background: #0d1416; }
+
+      #unity-loading-bar { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: none; }
+      #unity-logo { width: 154px; height: 130px; background: url('TemplateData/unity-logo-dark.png') no-repeat center; margin: 0 auto; }
+      #unity-progress-bar-empty { width: 141px; height: 18px; margin: 10px auto 0 auto; background: url('TemplateData/progress-bar-empty-dark.png') no-repeat center; }
+      #unity-progress-bar-full { width: 0%; height: 18px; background: url('TemplateData/progress-bar-full-dark.png') no-repeat center; }
+
+      #unity-warning { position: absolute; left: 50%; top: 5%; transform: translate(-50%); background: white; padding: 10px; display: none; z-index: 5; }
+
+      #bar { flex: 0 0 auto; height: 38px; display: flex; align-items: center; justify-content: center; background: #121c1f; border-top: 1px solid #22302f; }
+      #fs-button {
+        font: 600 13px Arial, Helvetica, sans-serif; letter-spacing: 0.08em; text-transform: uppercase;
+        color: #eef2f0; background: #1e2b2d; border: 1px solid #3a4a48; border-radius: 999px;
+        padding: 6px 18px; cursor: pointer; display: none;
+      }
+      #fs-button:hover { background: #2a3a3c; }
+      #fs-button:active { background: #e08a3c; border-color: #e08a3c; }
+    </style>
+  </head>
+  <body>
+    <div id="game">
+      <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+      <div id="unity-warning"> </div>
+    </div>
+    <div id="bar">
+      <button id="fs-button" type="button">Fullscreen</button>
+    </div>
+
+    <script>
+      var canvas = document.querySelector("#unity-canvas");
+
+      function unityShowBanner(msg, type) {
+        var warningBanner = document.querySelector("#unity-warning");
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        }
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == 'error') div.style = 'background: red; color: white; padding: 10px;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+          setTimeout(function() {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
+      }
+
+      // Fullscreen for the whole page, so the bar stays and the canvas just grows.
+      (function () {
+        var btn = document.querySelector("#fs-button");
+        var root = document.documentElement;
+        var request = root.requestFullscreen || root.webkitRequestFullscreen;
+        var exit = document.exitFullscreen || document.webkitExitFullscreen;
+        if (!request || !exit) return;
+        btn.style.display = "inline-block";
+        function isFs() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+        function sync() { btn.textContent = isFs() ? "Exit fullscreen" : "Fullscreen"; }
+        btn.onclick = function () { if (isFs()) exit.call(document); else request.call(root); };
+        document.addEventListener("fullscreenchange", sync);
+        document.addEventListener("webkitfullscreenchange", sync);
+      })();
+
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/CalfWayHome-GitHubPages.loader.js";
+      var config = {
+        arguments: [],
+        dataUrl: buildUrl + "/CalfWayHome-GitHubPages.data.unityweb",
+        frameworkUrl: buildUrl + "/CalfWayHome-GitHubPages.framework.js.unityweb",
+        codeUrl: buildUrl + "/CalfWayHome-GitHubPages.wasm.unityweb",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "DefaultCompany",
+        productName: "CalfWayHome",
+        productVersion: "0.1.0",
+        showBanner: unityShowBanner,
+      };
+
+      document.querySelector("#unity-loading-bar").style.display = "block";
+
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
+        }).then((unityInstance) => {
+          document.querySelector("#unity-loading-bar").style.display = "none";
+          canvas.focus();
+        }).catch((message) => {
+          unityShowBanner(message, 'error');
+        });
+      };
+      document.body.appendChild(script);
+    </script>
+  </body>
+</html>

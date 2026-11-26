@@ -1,0 +1,2 @@
+release build 2026-11-26 05:29:23Z
+scenes: Assets/_Project/Scenes/Level1_Test.unity, Assets/_Project/Scenes/Level2.unity, Assets/_Project/Scenes/Level3.unity, Assets/_Project/Scenes/Level4.unity, Assets/_Project/Scenes/Level5.unity
